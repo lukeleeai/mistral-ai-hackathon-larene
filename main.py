@@ -1,12 +1,26 @@
+import os
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 from typing import Dict, List, Tuple, Optional
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 
-from attack_tap import run_security_test as atk_run_security_test
+from attack_tap import SecurityTest
 from defense_tap import run_complete_defense_test as def_run_security_test
 
 app = FastAPI()
+
+# Use environment variable to adjust CORS for production
+origins = ["*"]  # Allow all domains in development
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class SecurityAttackTestInput(BaseModel):
     system_prompt: str
@@ -29,24 +43,27 @@ test_results_cache: Dict[str, Dict[str, any]] = {}
 
 @app.post("/initiate_attack_test/")
 async def initiate_attack_test(input_data: SecurityAttackTestInput, background_tasks: BackgroundTasks):
-    # Generate initial attack scenarios quickly and cache
-    scenarios = atk_run_security_test.generate_initial_scenarios(input_data.system_prompt)
-    test_results_cache[input_data.system_prompt] = {"scenarios": scenarios, "attacks": None, "defenses": None}
-
-    # Background task to generate detailed attacks
-    background_tasks.add_task(run_detailed_attacks, input_data)
-    return JSONResponse(content={"scenarios": scenarios})
-
-async def run_detailed_attacks(input_data: SecurityAttackTestInput):
-    results = atk_run_security_test(
+    # Create instance of SecurityTest
+    security_test = SecurityTest(
         input_data.system_prompt,
         input_data.branching_factor,
         input_data.max_width,
         input_data.max_depth,
-        input_data.top_k,
+        input_data.top_k
     )
+    # Generate initial attack scenarios quickly and cache
+    scenarios = security_test.generate_attack_scenarios()
+
+    test_results_cache[input_data.system_prompt] = {"scenarios": scenarios, "attacks": None, "defenses": None}
+
+    # Background task to generate detailed attacks
+    background_tasks.add_task(run_detailed_attacks, security_test)
+    return JSONResponse(content={"scenarios": scenarios})
+
+async def run_detailed_attacks(security_test: SecurityTest):
+    results = security_test.run()
     # Save detailed attack results in cache
-    test_results_cache[input_data.system_prompt]["attacks"] = results
+    test_results_cache[security_test.system_prompt]["attacks"] = results
 
 @app.get("/get_attack_results/")
 async def get_attack_results(system_prompt: str):
@@ -76,7 +93,7 @@ async def run_defense_simulations(input_data: SecurityDefenseTestInput):
         input_data.top_k,
     )
     # Save defense results in cache
-    test_results_cache[input_data.system_prompt]["defenses"] = {"results": results, "stats": stats}
+    test_results_cache[input_data.system_prompt]["defenses"] = {"results": results[0], "stats": stats}
 
 @app.get("/get_defense_results/")
 async def get_defense_results(system_prompt: str):

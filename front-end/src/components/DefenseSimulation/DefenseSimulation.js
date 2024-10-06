@@ -16,7 +16,7 @@ function DefenseSimulation({ systemPrompt }) {
       });
       const data = await response.json();
       if (!data.status) {
-        setResults(data.results || []);
+        setResults([data.results] || []);
       }
       setLoading(false);
     }

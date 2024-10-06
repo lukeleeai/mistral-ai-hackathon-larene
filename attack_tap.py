@@ -17,56 +17,64 @@ from agent_templates import (
 )
 
 
-def run_security_test(
-    system_prompt: str,
-    branching_factor: int = 3,
-    max_width: int = 3,
-    max_depth: int = 3,
-    top_k: int = 5,
-) -> List[Tuple[str, str, int]]:
-    # Initialize the Mistral AI language model
-    llm = ChatMistralAI(
-        model="mistral-large-latest",
-        api_key=os.environ["MISTRAL_API_KEY"],
-    )
+class SecurityTest:
+    def __init__(
+        self,
+        system_prompt: str,
+        branching_factor: int = 3,
+        max_width: int = 3,
+        max_depth: int = 3,
+        top_k: int = 5,
+    ):
+        self.system_prompt = system_prompt
+        self.branching_factor = branching_factor
+        self.max_width = max_width
+        self.max_depth = max_depth
+        self.top_k = top_k
 
-    def create_llm_chain(template: str) -> RunnablePassthrough:
+        # Initialize the Mistral AI language model
+        self.llm = ChatMistralAI(
+            model="mistral-large-latest",
+            api_key=os.environ["MISTRAL_API_KEY"],
+        )
+
+        self.consultant_chain = self.create_llm_chain(consultant_template)
+        self.attacker_chain = self.create_llm_chain(attacker_template)
+        self.judge_chain = self.create_llm_chain(judge_template)
+
+    def create_llm_chain(self, template: str) -> RunnablePassthrough:
         chat_prompt = ChatPromptTemplate.from_template(template)
-        return RunnablePassthrough() | chat_prompt | llm
+        return RunnablePassthrough() | chat_prompt | self.llm
 
-    consultant_chain = create_llm_chain(consultant_template)
-    attacker_chain = create_llm_chain(attacker_template)
-    judge_chain = create_llm_chain(judge_template)
-
-    def parse_attack_scenarios(output: str) -> List[str]:
+    def parse_attack_scenarios(self, output: str) -> List[str]:
         scenarios = output.split("###")[1:]
         return [scenario.strip() for scenario in scenarios]
 
-    def generate_attack_scenarios(system_prompt: str) -> List[str]:
-        response = consultant_chain.invoke({"system_prompt": system_prompt})
-        scenarios = parse_attack_scenarios(response.content)
+    def generate_attack_scenarios(self) -> List[str]:
+        response = self.consultant_chain.invoke({"system_prompt": self.system_prompt})
+        scenarios = self.parse_attack_scenarios(response.content)
         return scenarios[:5]  # Limit to 5 scenarios
 
-    def parse_attack_prompts(output: str) -> List[str]:
+    def parse_attack_prompts(self, output: str) -> List[str]:
         prompts = re.findall(r"-----(.+?)-----", output, re.DOTALL)
         return [prompt.strip() for prompt in prompts if prompt.strip()]
 
     def generate_attack_prompts(
-        attack_scenario: str, branch_history: str, num_branches: int
+        self, attack_scenario: str, branch_history: str, num_branches: int
     ) -> List[str]:
-        response = attacker_chain.invoke(
+        response = self.attacker_chain.invoke(
             {
                 "attack_scenario": attack_scenario,
                 "branch_history": branch_history,
                 "num_branches": num_branches,
             }
         )
-        return parse_attack_prompts(response.content)
+        return self.parse_attack_prompts(response.content)
 
     def judge_attack(
-        goal: str, system_prompt: str, attack_prompt: str, model_response: str
+        self, goal: str, system_prompt: str, attack_prompt: str, model_response: str
     ) -> Tuple[int, str]:
-        response = judge_chain.invoke(
+        response = self.judge_chain.invoke(
             {
                 "attack_scenario": goal,
                 "system_prompt": system_prompt,
@@ -116,6 +124,7 @@ def run_security_test(
             )
 
     def tap_algorithm(
+        self,
         goal: str,
         branching_factor: int,
         max_width: int,
@@ -123,7 +132,7 @@ def run_security_test(
         system_prompt: str,
     ) -> List[Node]:
         node_counter = 0
-        root = Node(goal, [], 0, node_counter, -1, goal)
+        root = self.Node(goal, [], 0, node_counter, -1, goal)
         queue = deque([root])
         all_nodes = {0: root}
         all_leaf_nodes = []
@@ -137,7 +146,7 @@ def run_security_test(
                 all_leaf_nodes.append(node)
                 continue
 
-            attack_prompts = generate_attack_prompts(
+            attack_prompts = self.generate_attack_prompts(
                 goal, "\n".join(node.conversation_history), branching_factor
             )
 
@@ -145,7 +154,7 @@ def run_security_test(
             for prompt in attack_prompts:
                 colored_print(f"Attack Prompt: {prompt}", "R")
                 node_counter += 1
-                child = Node(
+                child = self.Node(
                     prompt,
                     node.conversation_history + [prompt],
                     node.depth + 1,
@@ -157,11 +166,11 @@ def run_security_test(
                 all_nodes[node_counter] = child
 
             for child in children:
-                model_response = llm.invoke(child.prompt).content
+                model_response = self.llm.invoke(child.prompt).content
 
                 colored_print(f"Model Response: {model_response}", "GRAY")
 
-                score, feedback = judge_attack(
+                score, feedback = self.judge_attack(
                     goal, system_prompt, child.prompt, model_response
                 )
 
@@ -182,22 +191,23 @@ def run_security_test(
 
         return all_leaf_nodes
 
-    all_top_nodes = []
-    attack_scenarios = generate_attack_scenarios(system_prompt)
+    def run(self) -> List[Tuple[str, str, int]]:
+        all_top_nodes = []
+        attack_scenarios = self.generate_attack_scenarios()
 
-    for scenario in attack_scenarios:
-        leaf_nodes = tap_algorithm(
-            scenario, branching_factor, max_width, max_depth, system_prompt
+        for scenario in attack_scenarios:
+            leaf_nodes = self.tap_algorithm(
+                scenario, self.branching_factor, self.max_width, self.max_depth, self.system_prompt
+            )
+            all_top_nodes.extend(leaf_nodes)
+
+        top_k_nodes = heapq.nlargest(
+            self.top_k,
+            all_top_nodes,
+            key=lambda x: x.score if x.score else float("-inf"),
         )
-        all_top_nodes.extend(leaf_nodes)
 
-    top_k_nodes = heapq.nlargest(
-        top_k,
-        all_top_nodes,
-        key=lambda x: x.score if x.score else float("-inf"),
-    )
-
-    return [(node.scenario, node.prompt, node.score) for node in top_k_nodes]
+        return [(node.scenario, node.prompt, node.score) for node in top_k_nodes]
 
 
 # Example usage

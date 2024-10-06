@@ -1,3 +1,6 @@
+import React from 'react';
+import './InitialPrompt.css';
+
 function InitialPrompt({ onChange }) {
   return (
     <div className="InitialPrompt">
