@@ -1,10 +1,34 @@
-import React from 'react';
-
+import React, { useState, useEffect } from 'react';
 import './DefenseSimulation.css';
 
-function DefenseSimulation() {
-  // Define fixed numbers
-  const fixedNumbers = [8, 4, 10, 9];  // You can set your own fixed numbers
+function DefenseSimulation({ systemPrompt }) {
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    async function fetchResults() {
+      setLoading(true);
+      const response = await fetch('http://localhost:8000/get_defense_results/', {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+      const data = await response.json();
+      if (!data.status) {
+        setResults(data.results || []);
+      }
+      setLoading(false);
+    }
+
+    if (systemPrompt) {
+      fetchResults();
+    }
+  }, [systemPrompt]);
+
+  if (loading) {
+    return <div>Loading defense results...</div>;
+  }
 
   const getColor = (num) => {
     if (num < 4) {
@@ -16,16 +40,15 @@ function DefenseSimulation() {
     }
   };
 
-  const colors = fixedNumbers.map(getColor);
-
   return (
     <div className="DefenseSimulation">
-      <p>Defense simulation : </p>
+      <p>Defense simulation :</p>
       <ul className="defense">
-        <li className='number-display' style={{ backgroundColor: colors[0] }}>User forces score manipulation : {fixedNumbers[0]}</li>
-        <li className='number-display' style={{ backgroundColor: colors[1] }}>User forces essay deletion : {fixedNumbers[1]}</li>
-        <li className='number-display' style={{ backgroundColor: colors[2] }}>External document forces essay deletion : {fixedNumbers[2]}</li>
-        <li className='number-display' style={{ backgroundColor: colors[3] }}>External document manipulates essay score : {fixedNumbers[3]}</li>
+        {results.map((result, index) => (
+          <li key={index} className='number-display' style={{ backgroundColor: getColor(result.score) }}>
+            {result.scenario}: {result.score}
+          </li>
+        ))}
       </ul>
     </div>
   );

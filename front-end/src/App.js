@@ -7,23 +7,27 @@ import ListAttacks from './components/ListAttacks/ListAttacks';
 import { useState } from 'react';
 
 function App() {
+  const [systemPrompt, setSystemPrompt] = useState('');
   const [showArena, setShowArena] = useState(false);
+
+  const handlePromptSubmit = () => {
+    setShowArena(true);
+  };
 
   return (
     <div className="App">
       <h1>L'arène</h1>
-      <InitialPrompt />
-      <LaunchArenaButton onClick={() => setShowArena(true)} />
+      <InitialPrompt onChange={(e) => setSystemPrompt(e.target.value)} />
+      <LaunchArenaButton onClick={handlePromptSubmit} />
       {showArena && (
         <>
-          <ListAttacks />
-          <AttackSimulation />
-          <DefenseSimulation />
+          <ListAttacks systemPrompt={systemPrompt} />
+          <AttackSimulation systemPrompt={systemPrompt} />
+          <DefenseSimulation systemPrompt={systemPrompt} />
         </>
       )}
     </div>
   );
-
 }
 
 export default App;

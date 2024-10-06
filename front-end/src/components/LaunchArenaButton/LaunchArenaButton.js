@@ -1,3 +1,4 @@
+import React from 'react';
 import './LaunchArenaButton.css';
 
 function LaunchArenaButton({ onClick }) {
