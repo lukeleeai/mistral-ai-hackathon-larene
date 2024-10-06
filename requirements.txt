@@ -1,0 +1,7 @@
+fastapi
+pydantic
+Uvicorn
+langchain_mistralai
+langchain
+colorama
+direnv
