@@ -1,0 +1,19 @@
+.LaunchArenaButton {
+  display: flex;
+  justify-content: right;
+  align-items: right;
+  cursor: pointer;
+  padding: 16px;
+  width: 60%;
+
+}
+
+#launch-arena-button {
+  background: linear-gradient(45deg, #FFCE00, #FF4900);
+  color: white;
+  border: none;
+  padding: 10px 10px;
+  font-size: 20px;
+  font-weight: bold;
+  border-radius: 5px;
+}

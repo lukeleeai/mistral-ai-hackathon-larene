@@ -1,0 +1,29 @@
+.AttackSimulation {
+  display: flex;
+  flex-direction: column;
+  align-items: left;
+  justify-content: center;
+  height: 100%;
+  width: 60%;
+}
+
+.attacks {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  width: 100%;
+  border-radius: 5px;
+  margin-bottom: 10px;
+}
+
+.attacks li {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  background-color: rgba(237, 176, 63, 0.15);
+  border-radius: 5px;
+  width: 100%;
+  margin-bottom: 10px;
+}

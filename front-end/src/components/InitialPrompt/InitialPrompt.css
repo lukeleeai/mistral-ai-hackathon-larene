@@ -1,0 +1,18 @@
+.InitialPrompt {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  width: 60%;
+}
+
+.initial-prompt {
+  width: 100%;
+  background-color: rgba(217, 217, 217, 0.3);
+  border-radius: 5px;
+  resize: none;
+  min-height: 120px;
+  padding: 10px;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
