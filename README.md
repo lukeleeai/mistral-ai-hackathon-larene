@@ -25,8 +25,7 @@ To get started with the backend services, follow these steps:
 
 1. **Clone the repository**:
   ```bash
-  git clone https://github.com/Nabil-cheikh/l-arene-backend.git
-  cd l-arene-backend
+  git clone git@github.com:lukeleeai/mistral-ai-hackathon-larene.git
   ```
 
 2. **Install dependencies**:
