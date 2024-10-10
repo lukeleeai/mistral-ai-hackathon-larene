@@ -42,16 +42,4 @@ To get started with **L'arène**, follow these steps:
   npm start
   ```
 
-## Contributing
-
-We welcome contributions to **L'arène**! Please read our [contributing guidelines](CONTRIBUTING.md) for more information.
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
-## Contact
-
-For any questions or feedback, please reach out to us at [support@mistral.ai](mailto:support@mistral.ai).
-
 Thank you for using **L'arène**!
