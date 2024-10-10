@@ -42,10 +42,3 @@ To get started with the backend services, follow these steps:
 
 We welcome contributions to improve the project. Please fork the repository and submit a pull request with your changes.
 
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
-## Contact
-
-For any questions or inquiries, please contact us at [email@example.com](mailto:email@example.com).
