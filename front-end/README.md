@@ -21,14 +21,13 @@ To get started with **L'arène**, follow these steps:
 1. Clone the repository:
 
   ```bash
-  git clone https://github.com/yourusername/L-arene-frontend.git
+  git clone git@github.com:lukeleeai/mistral-ai-hackathon-larene.git
   ```
 
 2. Navigate to the project directory:
 
   ```bash
-  mv L-arene-frontend l-arene-frontend
-  cd l-arene-frontend
+  cd front-end
   ```
 
 3. Install the dependencies:
