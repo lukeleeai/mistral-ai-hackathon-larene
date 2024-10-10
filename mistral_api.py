@@ -3,8 +3,6 @@ from langchain_mistralai import ChatMistralAI
 from langchain.prompts import ChatPromptTemplate
 from langchain.schema.runnable import RunnablePassthrough
 
-# Set your Mistral AI API key
-os.environ["MISTRAL_API_KEY"] = "pqmKVrIjJjkKQMhvRslPapP7QzNV2A1I"
 
 # Initialize the Mistral AI language model
 llm = ChatMistralAI(
